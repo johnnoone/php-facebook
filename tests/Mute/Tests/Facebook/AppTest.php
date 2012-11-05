@@ -3,15 +3,16 @@
 namespace Mute\Tests\Facebook;
 
 use PHPUnit_Framework_TestCase;
-use Mute\Facebook\App,
-    Mute\Facebook\GraphApi;
+use Mute\Facebook\App;
 
 class AppTest extends PHPUnit_Framework_TestCase
 {
+    const APP_ID = '117743971608120';
+    const SECRET = '9c8ea2071859659bea1246d33a9207cf';
+
     function testAuthenticate()
     {
-        $graphApi = new GraphApi;
-        $App = new App($graphApi, 321796077830415, '88cadf27fc3915f4b5481bb0d8e99bc9');
+        $App = new App(self::APP_ID, self::SECRET);
         $App->getAccessToken();
     }
 }
