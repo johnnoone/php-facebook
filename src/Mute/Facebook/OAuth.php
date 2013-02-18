@@ -89,8 +89,8 @@ class OAuth
         # convenience method to get a parsed token from Facebook for a given code
         # should this require an OAuth callback URL?
         $params = array(
-            'client_id' => $this->getId(),
-            'client_secret' => $this->getSecret(),
+            'client_id' => $this->app->getId(),
+            'client_secret' => $this->app->getSecret(),
             'code' => $code,
             'redirect_uri' => $redirect_uri,
         );

@@ -20,7 +20,7 @@ class Connect
 
     public function getCookieName()
     {
-        return 'fbsr_' . $this->id;
+        return 'fbsr_' . $this->app->getId();
     }
 
     /**
