@@ -25,7 +25,7 @@ $app_secret = "YOUR_APP_SECRET";
  **/
 
 $app = new App($app_id, $app_secret);
-$params = $app->fetchAppAccessToken();
+$params = $app->getOAuth()->getAppAccessToken();
 
 echo 'This app\'s access token is: ' . $params['access_token'];
 
