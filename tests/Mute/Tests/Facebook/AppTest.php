@@ -31,4 +31,14 @@ class AppTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(self::APP_ID, @$response['id']);
         $this->assertEquals(self::APP_NAMESPACE, @$response['namespace']);
     }
+
+    public function testSignedRequest()
+    {
+        $app = new App(self::APP_ID, self::APP_SECRET, self::APP_NAMESPACE);
+        $signed_request = $app->makeSignedRequest(array(
+            'foo' => 'bar',
+        ));
+        $response = $app->parseSignedRequest($signed_request);
+        $this->assertEquals('bar', @$response['foo']);
+    }
 }

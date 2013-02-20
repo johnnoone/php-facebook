@@ -2,6 +2,7 @@
 
 namespace Mute\Facebook;
 
+use Exception;
 use Mute\Facebook\Bases\AccessToken;
 use Mute\Facebook\Bases\Batchable;
 use Mute\Facebook\Bases\Requestable;
@@ -11,6 +12,7 @@ use Mute\Facebook\Exception\GraphAPIException;
 use Mute\Facebook\Exception\HTTPException;
 use Mute\Facebook\Exception\InvalidArgumentException;
 use Mute\Facebook\Exception\OAuthSignatureException;
+use Mute\Facebook\Util;
 
 class App implements AccessToken, Batchable, Requestable, RequestHandler
 {
@@ -146,34 +148,28 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         return $this;
     }
 
+    public function makeSignedRequest(array $data)
+    {
+        try {
+
+            return Util::makeSignedRequest($data, $this->secret);
+        }
+        catch (Exception $e) {
+
+            throw new OAuthSignatureException($e->getMessage(), 0, $e);
+        }
+    }
+
     function parseSignedRequest($signed_request)
     {
-        static $base64url_decode;
-        if (!isset($base64url_decode)) {
-            $base64url_decode = function ($data) {
-              return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
-            };
-        }
+        try {
 
-        $parts = explode('.', $signed_request, 2);
-        if (!isset($parts[1])) {
-            throw new OAuthSignatureException('Invalid (incomplete) signature data');
+            return Util::parseSignedRequest($signed_request, $this->secret);
         }
-        list($encoded_sig, $payload) = $parts;
-        unset($parts);
+        catch (Exception $e) {
 
-        $data = json_decode($base64url_decode($payload), true);
-        if ($data['algorithm'] !== 'HMAC-SHA256') {
-            throw new OAuthSignatureException('Unsupported algorithm ' . $data['algorithm']);
+            throw new OAuthSignatureException($e->getMessage(), 0, $e);
         }
-
-        $signature = $base64url_decode($encoded_sig);
-        $expected_sig = hash_hmac('sha256', $payload, $this->secret, true);
-        if ($signature !== $expected_sig) {
-            throw new OAuthSignatureError('Invalid signature');
-        }
-
-        return $data;
     }
 
     public function request($path, array $parameters = null, array $files = null)
