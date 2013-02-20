@@ -228,7 +228,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
     /**
      * @return AuthenticatedGraphApi
      */
-    public function getOAuthenticatedGraphApi($access_token)
+    public function getAuthenticatedGraphApi($access_token)
     {
 
         return new AuthenticatedGraphApi($access_token, $this);

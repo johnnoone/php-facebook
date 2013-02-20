@@ -5,14 +5,30 @@ namespace Mute\Tests\Facebook;
 use PHPUnit_Framework_TestCase;
 use Mute\Facebook\App;
 
+/**
+ * @link https://developers.facebook.com/docs/reference/api/application/
+ */
 class AppTest extends PHPUnit_Framework_TestCase
 {
     const APP_ID = '117743971608120';
-    const SECRET = '9c8ea2071859659bea1246d33a9207cf';
+    const APP_SECRET = '9c8ea2071859659bea1246d33a9207cf';
+    const APP_NAMESPACE = 'php-sdk-unit-test';
 
-    function testAuthenticate()
+    function testApp()
     {
-        $App = new App(self::APP_ID, self::SECRET);
-        $App->getAccessToken();
+        $app = new App(self::APP_ID, self::APP_SECRET, self::APP_NAMESPACE);
+        $access_token = $app->getAccessToken();
+
+        // get public informations
+        $response = $app->get(self::APP_ID);
+        $this->assertEquals(self::APP_ID, @$response['id']);
+        $this->assertEquals(self::APP_NAMESPACE, @$response['namespace']);
+
+        // get private informations
+        $response = $app->get(self::APP_ID, array(
+            'access_token' => $access_token,
+        ));
+        $this->assertEquals(self::APP_ID, @$response['id']);
+        $this->assertEquals(self::APP_NAMESPACE, @$response['namespace']);
     }
 }

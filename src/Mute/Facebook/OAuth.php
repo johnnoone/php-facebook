@@ -104,8 +104,8 @@ class OAuth
     public function getAppAccessToken()
     {
         $params = array(
-            'client_id' => $this->getId(),
-            'client_secret' => $this->getSecret(),
+            'client_id' => $this->app->getId(),
+            'client_secret' => $this->app->getSecret(),
             'grant_type' => 'client_credentials',
         );
 
