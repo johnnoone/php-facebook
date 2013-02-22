@@ -2,6 +2,7 @@
 
 namespace Mute\Facebook;
 
+use Closure;
 use Exception;
 use Mute\Facebook\Bases\AccessToken;
 use Mute\Facebook\Bases\Batchable;
@@ -126,11 +127,17 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
     }
 
     /**
-     * @return Batch
+     * @return Batch|array
      */
-    public function batch()
+    public function batch(Closure $commands = null)
     {
-        return new Batch($this->accessToken, $this);
+        $batch = new Batch($this->accessToken, $this);
+        if ($commands) {
+            $commands($batch);
+            $batch = $batch->execute();
+        }
+
+        return $batch;
     }
 
     public function getAccessToken()

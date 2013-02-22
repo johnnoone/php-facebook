@@ -2,12 +2,13 @@
 
 namespace Mute\Facebook;
 
-use InvalidArgumentException;
+use Closure;
 use Mute\Facebook\Bases\AccessToken;
 use Mute\Facebook\Bases\Batchable;
 use Mute\Facebook\Bases\Requestable;
 use Mute\Facebook\Bases\RequestHandler;
 use Mute\Facebook\Bases\RequestHandlerAware;
+use Mute\Facebook\Exception\InvalidArgumentException;
 
 class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, RequestHandlerAware
 {
@@ -98,12 +99,17 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
     }
 
     /**
-     * @return Batch
+     * @return Batch|array
      */
-    public function batch()
+    public function batch(Closure $commands = null)
     {
-        return new Batch($this->accessToken, $this->requestHandler);
-    }
+        $batch = new Batch($this->accessToken, $this->requestHandler);
+        if ($commands) {
+            $commands($batch);
+            $batch = $batch->execute();
+        }
+
+        return $batch;
 
     public function getAccessToken()
     {

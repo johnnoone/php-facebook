@@ -89,7 +89,7 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
         );
         $files = $this->attachedFiles;
 
-        $response = $this->requestHandler->request($path, $parameters, $files);
+        $response = $this->requestHandler->request('', $parameters, $files);
         $this->queries = array();
         $this->attachedFiles = array();
 
@@ -111,12 +111,15 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
             $batchParams = array_intersect_key($batchParams, array(
                 'name' => true,
                 'omit_response_on_success' => true,
-            );
+            ));
         }
-        else (is_string($batchParams)) {
+        elseif (is_string($batchParams)) {
             $batchParams = array(
                 'name' => $batchParams,
             );
+        }
+        else {
+            $batchParams = array();
         }
 
         $query = array(
@@ -147,12 +150,6 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
                 $this->attachedFiles[$filename] = $value;
             }
             $query['attached_files'] = implode(',', $attachedFiles);
-        }
-        if (is_string($name)) {
-            $query['name'] = $name;
-        }
-        if (is_bool($omit_response_on_success)) {
-            $query['omit_response_on_success'] = $omit_response_on_success;
         }
         $this->queries[] = $query;
 
