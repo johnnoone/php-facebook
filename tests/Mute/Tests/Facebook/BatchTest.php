@@ -25,7 +25,6 @@ class BatchTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(3, count($batch));
 
         $response = current($batch);
-        $response = json_decode($response['body'], true);
         $this->assertEquals(self::APP_ID, @$response['id']);
         $this->assertEquals(self::APP_NAMESPACE, @$response['namespace']);
     }
@@ -42,7 +41,6 @@ class BatchTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(3, count($batch));
 
         $response = current($batch);
-        $response = json_decode($response['body'], true);
         $this->assertEquals(self::APP_ID, @$response['id']);
         $this->assertEquals(self::APP_NAMESPACE, @$response['namespace']);
     }

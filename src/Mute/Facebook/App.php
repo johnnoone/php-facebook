@@ -126,12 +126,12 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         return $this->request('fql', $parameters);
     }
 
-    public function batch(Closure $commands = null)
+    public function batch(Closure $commands = null, $extended = false)
     {
         $batch = new Batch($this->accessToken, $this);
         if ($commands) {
             $commands($batch);
-            $batch = $batch->execute();
+            $batch = $batch->execute($extended);
         }
 
         return $batch;

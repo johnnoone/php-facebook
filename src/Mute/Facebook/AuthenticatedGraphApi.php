@@ -98,12 +98,12 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
         return $this->requestHandler->request('fql', $parameters);
     }
 
-    public function batch(Closure $commands = null)
+    public function batch(Closure $commands = null, $extended = false)
     {
         $batch = new Batch($this->accessToken, $this->requestHandler);
         if ($commands) {
             $commands($batch);
-            $batch = $batch->execute();
+            $batch = $batch->execute($extended);
         }
 
         return $batch;

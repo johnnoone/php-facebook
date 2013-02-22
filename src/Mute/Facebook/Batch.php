@@ -81,7 +81,11 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
         return $this;
     }
 
-    public function execute()
+    /**
+     * @param bool $extended should we return the full response or bodies only ?
+     * @return array
+     */
+    public function execute($extended = false)
     {
         $parameters = array(
             'access_token' => $this->fallbackAccessToken,
@@ -92,6 +96,26 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
         $response = $this->requestHandler->request('', $parameters, $files);
         $this->queries = array();
         $this->attachedFiles = array();
+        if ($extended) {
+            return $response;
+        }
+
+        // try to parse bodies...
+        $response = array_map(function($response) {
+            if ($response === null) {
+                return null;
+            }
+
+            $body = $response['body'];
+            foreach ($response['headers'] as $header) if (
+                     $header['name'] == 'Content-Type' &&
+                     $header['value'] == 'text/javascript; charset=UTF-8') {
+
+                return json_decode($body, true);
+            }
+
+            return $body;
+        }, $response);
 
         return $response;
     }
