@@ -31,7 +31,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         CURLOPT_FAILONERROR    => false,       // lets 4** http codes be processed
     );
 
-    function __construct($app_id, $app_secret, $app_namespace)
+    function __construct($app_id, $app_secret, $app_namespace = null)
     {
         $this->id = $app_id;
         $this->secret = $app_secret;
