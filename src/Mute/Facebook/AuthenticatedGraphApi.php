@@ -10,6 +10,9 @@ use Mute\Facebook\Bases\RequestHandler;
 use Mute\Facebook\Bases\RequestHandlerAware;
 use Mute\Facebook\Exception\InvalidArgumentException;
 
+/**
+ * Simple App wrapper which inject relevant access_token.
+ */
 class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, RequestHandlerAware
 {
     /**
@@ -28,7 +31,11 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
         $this->requestHandler = $requestHandler;
     }
 
-    public function get($path, array $parameters = null)
+    /**
+     * {@inheritdoc}
+     * @param bool $extended return the extended response?
+     */
+    public function get($path, array $parameters = null, $extended = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -36,10 +43,14 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
             'method' => 'GET',
         );
 
-        return $this->requestHandler->request($path, $parameters);
+        return $this->requestHandler->request($path, $parameters, null, $extended);
     }
 
-    public function post($path, array $parameters = null, array $files = null)
+    /**
+     * {@inheritdoc}
+     * @param bool $extended return the extended response?
+     */
+    public function post($path, array $parameters = null, array $files = null, $extended = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -47,10 +58,14 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
             'method' => 'POST',
         );
 
-        return $this->requestHandler->request($path, $parameters, $files);
+        return $this->requestHandler->request($path, $parameters, $files, $extended);
     }
 
-    public function put($path, array $parameters = null, array $files = null)
+    /**
+     * {@inheritdoc}
+     * @param bool $extended return the extended response?
+     */
+    public function put($path, array $parameters = null, array $files = null, $extended = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -58,10 +73,14 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
             'method' => 'PUT',
         );
 
-        return $this->requestHandler->request($path, $parameters, $files);
+        return $this->requestHandler->request($path, $parameters, $files, $extended);
     }
 
-    public function delete($path, array $parameters = null)
+    /**
+     * {@inheritdoc}
+     * @param bool $extended return the extended response?
+     */
+    public function delete($path, array $parameters = null, $extended = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -69,13 +88,15 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
             'method' => 'DELETE',
         );
 
-        return $this->requestHandler->request($path, $parameters);
+        return $this->requestHandler->request($path, $parameters, null, $extended);
     }
 
     /**
+     * {@inheritdoc}
      * @link https://developers.facebook.com/docs/technical-guides/fql/
+     * @param bool $extended return the extended response?
      */
-    public function fql($query, array $parameters = null)
+    public function fql($query, array $parameters = null, $extended = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -95,7 +116,7 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
         }
         $parameters['q'] = $query;
 
-        return $this->requestHandler->request('fql', $parameters);
+        return $this->requestHandler->request('fql', $parameters, null, $extended);
     }
 
     public function batch(Closure $commands = null, $extended = false)
@@ -107,6 +128,7 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
         }
 
         return $batch;
+    }
 
     public function getAccessToken()
     {

@@ -59,7 +59,11 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         return $this->api;
     }
 
-    public function get($path, array $parameters = null)
+    /**
+     * {@inheritdoc}
+     * @param bool $extended return the extended response?
+     */
+    public function get($path, array $parameters = null, $extended = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -67,10 +71,14 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
             'method' => 'GET',
         );
 
-        return $this->request($path, $parameters);
+        return $this->request($path, $parameters, null, $extended);
     }
 
-    public function post($path, array $parameters = null, array $files = null)
+    /**
+     * {@inheritdoc}
+     * @param bool $extended return the extended response?
+     */
+    public function post($path, array $parameters = null, array $files = null, $extended = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -78,10 +86,14 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
             'method' => 'POST',
         );
 
-        return $this->request($path, $parameters, $files);
+        return $this->request($path, $parameters, $files, $extended);
     }
 
-    public function put($path, array $parameters = null, array $files = null)
+    /**
+     * {@inheritdoc}
+     * @param bool $extended return the extended response?
+     */
+    public function put($path, array $parameters = null, array $files = null, $extended = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -89,10 +101,14 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
             'method' => 'PUT',
         );
 
-        return $this->request($path, $parameters, $files);
+        return $this->request($path, $parameters, $files, $extended);
     }
 
-    public function delete($path, array $parameters = null)
+    /**
+     * {@inheritdoc}
+     * @param bool $extended return the extended response?
+     */
+    public function delete($path, array $parameters = null, $extended = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -100,10 +116,14 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
             'method' => 'DELETE',
         );
 
-        return $this->request($path, $parameters);
+        return $this->request($path, $parameters, null, $extended);
     }
 
-    public function fql($query, array $parameters = null)
+    /**
+     * {@inheritdoc}
+     * @param bool $extended return the extended response?
+     */
+    public function fql($query, array $parameters = null, $extended = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -123,7 +143,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         }
         $parameters['q'] = $query;
 
-        return $this->request('fql', $parameters);
+        return $this->request('fql', $parameters, null, $extended);
     }
 
     public function batch(Closure $commands = null, $extended = false)
@@ -176,7 +196,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         }
     }
 
-    public function request($path, array $parameters = null, array $files = null)
+    public function request($path, array $parameters = null, array $files = null, $extended = false)
     {
         $options = filter_var_array($this->options, array(
             'connect_timeout' => FILTER_VALIDATE_INT,
@@ -187,15 +207,16 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         $curlOptions = array(
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_USERAGENT      => "Mute/Facebook-1.0 (https://github.com/johnnoone/php-facebook)",
+            CURLOPT_USERAGENT => "Mute/Facebook-1.0 (https://github.com/johnnoone/php-facebook)",
             CURLOPT_CONNECTTIMEOUT => $options['connect_timeout']
                 ? $options['connect_timeout']
                 : 5,
             CURLOPT_TIMEOUT => $options['timeout']
                 ? $options['timeout']
                 : 5,
-            CURLOPT_MAXREDIRS      => 10,          // stop after 10 redirects
-            CURLOPT_FAILONERROR    => false,       // lets 4** http codes be processed
+            CURLOPT_MAXREDIRS => 10,        // stop after 10 redirects
+            CURLOPT_FAILONERROR => false,   // lets 4** http codes be processed
+            CURLOPT_HEADER => $extended,
         );
 
         $postFields = array();
@@ -206,7 +227,8 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         }
         if ($files) foreach ($files as $name => $file) {
             $postFields[$name] = '@' . realpath($file);
-            // try to send the smallest files you can.
+            // On *nix it's hopefully not affected by PHP time limit,
+            // but on Windows try to send the smallest files you can.
             if ($boost = $options['upload_boot']) {
                 $curlOptions[CURLOPT_TIMEOUT] += filesize($file) / $boost;
             }
@@ -223,7 +245,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         $content = curl_exec($ch);
         $err     = curl_errno($ch);
         $errmsg  = curl_error($ch);
-        $header  = curl_getinfo($ch);
+        $info    = curl_getinfo($ch);
         curl_close($ch);
 
         if ($err !== CURLE_OK) {
@@ -231,7 +253,12 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
             throw new CurlException($errmsg, $err);
         }
 
-        if ($header['content_type'] == 'text/javascript; charset=UTF-8') {
+        if ($extended) {
+            list($header, $content) = explode("\r\n\r\n", $content, 2);
+            $header = substr($header, strpos($header, "\r\n") + 2);
+        }
+
+        if ($info['content_type'] == 'text/javascript; charset=UTF-8') {
             $content = json_decode($content, true);
             if (is_array($content) && isset($content['error'])) {
 
@@ -239,12 +266,44 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
             }
         }
 
-        if ($header['http_code'] >= 400) {
+        if ($info['http_code'] >= 400) {
 
-            throw new HTTPException($header['http_code'], $content);
+            throw new HTTPException($info['http_code'], $content);
+        }
+
+        if ($extended) {
+            $headers = $this->parseHeader($header);
+            return array(
+                'code' => $info['http_code'],
+                'headers' => $headers,
+                'body' => $content,
+            );
         }
 
         return $content;
+    }
+
+    protected function parseHeader($header)
+    {
+        if (function_exists('http_parse_headers')) {
+            return http_parse_headers($header);
+        }
+
+        $response = array();
+        $fields = explode("\r\n", preg_replace('/\x0D\x0A[\x09\x20]+/', ' ', $header));
+        foreach ($fields as $field) if (preg_match('/(?P<key>[^:]+): (?<value>.+)/m', $field, $match)) {
+            if (isset($response[$match['key']])) {
+                if (!is_array($response[$match['key']])) {
+                    $response[$match['key']] = array($response[$match['key']]);
+                }
+                $response[$match['key']][] = trim($match['value']);
+            }
+            else {
+                $response[$match['key']] = trim($match['value']);
+            }
+        }
+
+        return $response;
     }
 
     /**
@@ -252,7 +311,6 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
      */
     public function getAuthenticatedGraphApi($access_token)
     {
-
         return new AuthenticatedGraphApi($access_token, $this);
     }
 

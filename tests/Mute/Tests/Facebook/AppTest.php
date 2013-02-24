@@ -17,17 +17,7 @@ class AppTest extends PHPUnit_Framework_TestCase
     function testApp()
     {
         $app = new App(self::APP_ID, self::APP_SECRET, self::APP_NAMESPACE);
-        $access_token = $app->getAccessToken();
-
-        // get public informations
         $response = $app->get(self::APP_ID);
-        $this->assertEquals(self::APP_ID, @$response['id']);
-        $this->assertEquals(self::APP_NAMESPACE, @$response['namespace']);
-
-        // get private informations
-        $response = $app->get(self::APP_ID, array(
-            'access_token' => $access_token,
-        ));
         $this->assertEquals(self::APP_ID, @$response['id']);
         $this->assertEquals(self::APP_NAMESPACE, @$response['namespace']);
     }
@@ -40,5 +30,13 @@ class AppTest extends PHPUnit_Framework_TestCase
         ));
         $response = $app->parseSignedRequest($signed_request);
         $this->assertEquals('bar', @$response['foo']);
+    }
+
+    public function testExtended()
+    {
+        $app = new App(self::APP_ID, self::APP_SECRET, self::APP_NAMESPACE);
+        $response = $app->get(self::APP_ID, null, true);
+        $this->assertEquals(self::APP_ID, @$response['body']['id']);
+        $this->assertEquals(self::APP_NAMESPACE, @$response['body']['namespace']);
     }
 }

@@ -1,13 +1,14 @@
 {
     "name": "mute/facebook",
-    "version": "1.0.0",
-    "description": "Badass description",
-    "keywords": ["library", "facebook"],
+    "description": "Implements Graph API and some of the OAuth facilities to operate with Facebook",
+    "keywords": ["library", "facebook", "rest"],
     "license": "MIT",
     "authors": [
         {
             "name": "Xavier Barbosa",
-            "email": "xavier.barbosa@iscool_e.com"
+            "email": "xavier.barbosa@iscool_e.com",
+            "homepage": "https://github.com/johnnoone",
+            "role": "Developer"
         }
     ],
     "require": {
@@ -19,5 +20,8 @@
     },
     "autoload": {
         "psr-0": {"Mute": "src/"}
+    },
+    "support": {
+        "source": "https://github.com/johnnoone/php-facebook"
     }
 }
