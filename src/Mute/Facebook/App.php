@@ -21,14 +21,14 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
     protected $secret;
     protected $namespace;
     protected $api = "https://graph.facebook.com";
-    protected $curlOpts = array(
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_USERAGENT      => "Mute/Facebook-1.0 (https://github.com/johnnoone/php-facebook)",
-        CURLOPT_CONNECTTIMEOUT => 10,          // timeout on connect
-        CURLOPT_TIMEOUT        => 10,          // timeout on response
-        CURLOPT_MAXREDIRS      => 10,          // stop after 10 redirects
-        CURLOPT_FAILONERROR    => false,       // lets 4** http codes be processed
+
+    /**
+     * @var array
+     */
+    protected $options = array(
+        'connect_timeout' => 5,     // in seconds. connect timeout
+        'timeout' => 10,            // in seconds. timeout for connect + response
+        'upload_boot' => 64300,     // bytes per seconds. heuristic for file uploading, 64300 is OK for 512 Kps.
     );
 
     function __construct($app_id, $app_secret, $app_namespace = null)
@@ -178,7 +178,25 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
 
     public function request($path, array $parameters = null, array $files = null)
     {
-        $curlOptions = $this->curlOpts;
+        $options = filter_var_array($this->options, array(
+            'connect_timeout' => FILTER_VALIDATE_INT,
+            'timeout' => FILTER_VALIDATE_INT,
+            'upload_boot' => FILTER_VALIDATE_INT,
+        ));
+
+        $curlOptions = array(
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_USERAGENT      => "Mute/Facebook-1.0 (https://github.com/johnnoone/php-facebook)",
+            CURLOPT_CONNECTTIMEOUT => $options['connect_timeout']
+                ? $options['connect_timeout']
+                : 5,
+            CURLOPT_TIMEOUT => $options['timeout']
+                ? $options['timeout']
+                : 5,
+            CURLOPT_MAXREDIRS      => 10,          // stop after 10 redirects
+            CURLOPT_FAILONERROR    => false,       // lets 4** http codes be processed
+        );
 
         $postFields = array();
         if ($parameters) foreach ($parameters as $name => $param) {
@@ -188,6 +206,10 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         }
         if ($files) foreach ($files as $name => $file) {
             $postFields[$name] = '@' . realpath($file);
+            // try to send the smallest files you can.
+            if ($boost = $options['upload_boot']) {
+                $curlOptions[CURLOPT_TIMEOUT] += filesize($file) / $boost;
+            }
         }
         if ($postFields) {
             $curlOptions[CURLOPT_POSTFIELDS] = $files
