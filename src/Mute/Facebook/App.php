@@ -24,7 +24,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
     protected $curlOpts = array(
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_USERAGENT      => "Mute/Facebook (https://github.com/johnnoone/php-mute-facebook)",
+        CURLOPT_USERAGENT      => "Mute/Facebook-1.0 (https://github.com/johnnoone/php-facebook)",
         CURLOPT_CONNECTTIMEOUT => 10,          // timeout on connect
         CURLOPT_TIMEOUT        => 10,          // timeout on response
         CURLOPT_MAXREDIRS      => 10,          // stop after 10 redirects
