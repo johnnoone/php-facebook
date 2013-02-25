@@ -2,11 +2,11 @@
 
 namespace Mute\Facebook;
 
-use InvalidArgumentException;
 use Mute\Facebook\Bases\AccessToken;
 use Mute\Facebook\Bases\Requestable;
 use Mute\Facebook\Bases\RequestHandler;
 use Mute\Facebook\Bases\RequestHandlerAware;
+use Mute\Facebook\Exception\InvalidArgumentException;
 
 class Batch implements AccessToken, Requestable, RequestHandlerAware
 {
@@ -28,35 +28,35 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
         $this->requestHandler = $requestHandler;
     }
 
-    public function get($path, array $parameters = null, $batchParams = null)
+    public function get($path, array $parameters = null, $headers = false, $batchParams = null)
     {
-        $this->append($path, 'GET', $parameters, null, $batchParams);
+        $this->append($path, 'GET', $parameters, null, $headers = false, $batchParams);
 
         return $this;
     }
 
-    public function post($path, array $parameters = null, array $files = null, $batchParams = null)
+    public function post($path, array $parameters = null, array $files = null, $headers = false, $batchParams = null)
     {
-        $this->append($path, 'POST', $parameters, $files, $batchParams);
+        $this->append($path, 'POST', $parameters, $files, $headers = false, $batchParams);
 
         return $this;
     }
 
-    public function put($path, array $parameters = null, array $files = null, $batchParams = null)
+    public function put($path, array $parameters = null, array $files = null, $headers = false, $batchParams = null)
     {
-        $this->append($path, 'PUT', $parameters, $files, $batchParams);
+        $this->append($path, 'PUT', $parameters, $files, $headers = false, $batchParams);
 
         return $this;
     }
 
-    public function delete($path, array $parameters = null, $batchParams = null)
+    public function delete($path, array $parameters = null, $headers = false, $batchParams = null)
     {
-        $this->append($path, 'DELETE', $parameters, null, $batchParams);
+        $this->append($path, 'DELETE', $parameters, null, $headers = false, $batchParams);
 
         return $this;
     }
 
-    public function fql($query, array $parameters = null, $batchParams = null)
+    public function fql($query, array $parameters = null, $headers = false, $batchParams = null)
     {
         $parameters = (array) $parameters;
         if (is_array($query)) {
@@ -76,7 +76,7 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
             $path = 'method/fql.query';
             $parameters['query'] = $query;
         }
-        $this->append($path, 'POST', $parameters, null, $batchParams);
+        $this->append($path, 'POST', $parameters, null, $headers = false, $batchParams);
 
         return $this;
     }
@@ -129,7 +129,7 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
      * @return mixed
      * @todo throw an Exception when max queries is reached
      */
-    protected function append($path, $method, array $params = null, array $files = null, $batchParams = null)
+    protected function append($path, $method, array $params = null, array $files = null, $headers = null, $batchParams = null)
     {
         if (is_array($batchParams)) {
             $batchParams = array_intersect_key($batchParams, array(
@@ -175,6 +175,13 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
             }
             $query['attached_files'] = implode(',', $attachedFiles);
         }
+        if ($headers) {
+            if (!is_array($headers)) {
+                throw new InvalidArgumentException('$headers must be an array');
+            }
+            $query['headers'] = $headers;
+        }
+
         $this->queries[] = $query;
 
         return $this;

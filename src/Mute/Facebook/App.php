@@ -63,7 +63,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
      * {@inheritdoc}
      * @param bool $extended return the extended response?
      */
-    public function get($path, array $parameters = null, $extended = false)
+    public function get($path, array $parameters = null, $headers = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -71,14 +71,14 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
             'method' => 'GET',
         );
 
-        return $this->request($path, $parameters, null, $extended);
+        return $this->request($path, $parameters, null, $headers);
     }
 
     /**
      * {@inheritdoc}
      * @param bool $extended return the extended response?
      */
-    public function post($path, array $parameters = null, array $files = null, $extended = false)
+    public function post($path, array $parameters = null, array $files = null, $headers = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -86,14 +86,14 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
             'method' => 'POST',
         );
 
-        return $this->request($path, $parameters, $files, $extended);
+        return $this->request($path, $parameters, $files, $headers);
     }
 
     /**
      * {@inheritdoc}
      * @param bool $extended return the extended response?
      */
-    public function put($path, array $parameters = null, array $files = null, $extended = false)
+    public function put($path, array $parameters = null, array $files = null, $headers = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -101,14 +101,14 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
             'method' => 'PUT',
         );
 
-        return $this->request($path, $parameters, $files, $extended);
+        return $this->request($path, $parameters, $files, $headers);
     }
 
     /**
      * {@inheritdoc}
      * @param bool $extended return the extended response?
      */
-    public function delete($path, array $parameters = null, $extended = false)
+    public function delete($path, array $parameters = null, $headers = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -116,14 +116,14 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
             'method' => 'DELETE',
         );
 
-        return $this->request($path, $parameters, null, $extended);
+        return $this->request($path, $parameters, null, $headers);
     }
 
     /**
      * {@inheritdoc}
      * @param bool $extended return the extended response?
      */
-    public function fql($query, array $parameters = null, $extended = false)
+    public function fql($query, array $parameters = null, $headers = false)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -143,7 +143,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         }
         $parameters['q'] = $query;
 
-        return $this->request('fql', $parameters, null, $extended);
+        return $this->request('fql', $parameters, null, $headers);
     }
 
     public function batch(Closure $commands = null, $extended = false)
@@ -196,8 +196,29 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         }
     }
 
-    public function request($path, array $parameters = null, array $files = null, $extended = false)
+    public function request($path, array $parameters = null, array $files = null, $headers = false)
     {
+        $method = 'POST';
+        if (isset($parameters['method'])) {
+            $method = $parameters['method'];
+            unset($parameters['method']);
+        }
+
+        if (!$headers) {
+            $headers = array();
+            $extended = false;
+        }
+        elseif (is_array($headers)) {
+            $extended = true;
+        }
+        elseif (is_bool($headers)) {
+            $extended = $headers;
+            $headers = array();
+        }
+        else {
+            throw new InvalidArgumentException('$headers must be a bool or an array');
+        }
+
         $options = filter_var_array($this->options, array(
             'connect_timeout' => FILTER_VALIDATE_INT,
             'timeout' => FILTER_VALIDATE_INT,
@@ -216,7 +237,9 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
                 : 5,
             CURLOPT_MAXREDIRS => 10,        // stop after 10 redirects
             CURLOPT_FAILONERROR => false,   // lets 4** http codes be processed
+            CURLOPT_HTTPHEADER => $headers,
             CURLOPT_HEADER => $extended,
+            CURLOPT_CUSTOMREQUEST => $method,
         );
 
         $postFields = array();
@@ -233,13 +256,21 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
                 $curlOptions[CURLOPT_TIMEOUT] += filesize($file) / $boost;
             }
         }
+
+        $url = $this->api . '/' . ltrim($path, '/');
         if ($postFields) {
-            $curlOptions[CURLOPT_POSTFIELDS] = $files
-                ? $postFields
-                : http_build_query($postFields, null, '&');
+            if ($method == 'GET') {
+                $url .= strpos('?', $url) === false ? '?' : '&';
+                $url .= http_build_query($postFields, null, '&');
+            }
+            else {
+                $curlOptions[CURLOPT_POSTFIELDS] = $files
+                    ? $postFields
+                    : http_build_query($postFields, null, '&');
+            }
         }
 
-        $ch = curl_init($this->api . '/' . ltrim($path, '/'));
+        $ch = curl_init($url);
         curl_setopt_array($ch, $curlOptions);
 
         $content = curl_exec($ch);
@@ -254,8 +285,8 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         }
 
         if ($extended) {
-            list($header, $content) = explode("\r\n\r\n", $content, 2);
-            $header = substr($header, strpos($header, "\r\n") + 2);
+            $header = substr($content, 0, $info['header_size']);
+            $content = substr($content, -$info['download_content_length']);
         }
 
         if ($info['content_type'] == 'text/javascript; charset=UTF-8') {

@@ -8,8 +8,8 @@ interface RequestHandler
      * @param string $path
      * @param array|null $parameters
      * @param array|null $files
-     * @param bool $extended should we return only body or the extended response?
+     * @param array|bool $headers if it is a list, it will be used to send these headers, if if it's not falsey, response will be extended?
      * @return array
      */
-    public function request($path, array $parameters = null, array $files = null, $extended = false);
+    public function request($path, array $parameters = null, array $files = null, $headers = false);
 }

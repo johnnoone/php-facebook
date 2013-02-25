@@ -39,4 +39,24 @@ class AppTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(self::APP_ID, @$response['body']['id']);
         $this->assertEquals(self::APP_NAMESPACE, @$response['body']['namespace']);
     }
+
+    public function testHeaders()
+    {
+        $app = new App(self::APP_ID, self::APP_SECRET, self::APP_NAMESPACE);
+        $response = $app->get(self::APP_ID, null, array('Accept: *'));
+        $this->assertEquals(self::APP_ID, @$response['body']['id']);
+        $this->assertEquals(self::APP_NAMESPACE, @$response['body']['namespace']);
+    }
+
+    // public function testEtag()
+    // {
+    //     $this->assertEquals($response1['body'], $response2['body']);
+    //     $this->assertArrayHasKey('ETag', $response1['headers']);
+    //     $headers = array(
+    //         'If-None-Match: ' . $response1['headers']['ETag'],
+    //     );
+    //     $response3 = $app->get(self::APP_ID, null, $headers);
+    //     $this->assertEquals(self::APP_ID, @$response['body']['id']);
+    //     $this->assertEquals(self::APP_NAMESPACE, @$response['body']['namespace']);
+    // }
 }
