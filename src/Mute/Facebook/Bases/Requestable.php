@@ -10,9 +10,15 @@ interface Requestable
      * @param string $path
      * @param array $parameters missing keys (access_token, method...)
      *                          may be filled by self
-     * @return array|string parsed json or raw body
+     * @param array|bool $headers if it is an array, it will be the headers
+     *                          sent to request. response will be extended. If
+     *                          it's a bool, response may be extended.
+     * @return array|string depends on $headers. an extended response includes
+     *                          status, headers and body. A simple response is
+     *                          just a body. If body is a response, then it is
+     *                          as a json, otherwise raw body will be return.
      */
-    public function get($path, array $parameters = null);
+    public function get($path, array $parameters = null, $headers = null);
 
     /**
      * Handles a GraphAPI POST request.
@@ -21,9 +27,15 @@ interface Requestable
      * @param array $parameters missing keys (access_token, method...)
      *                          may be filled by self
      * @param array $files dictionnary of filenames
-     * @return array|string parsed json or raw body
+     * @param array|bool $headers if it is an array, it will be the headers
+     *                          sent to request. response will be extended. If
+     *                          it's a bool, response may be extended.
+     * @return array|string depends on $headers. an extended response includes
+     *                          status, headers and body. A simple response is
+     *                          just a body. If body is a response, then it is
+     *                          as a json, otherwise raw body will be return.
      */
-    public function post($path, array $parameters = null, array $files = null);
+    public function post($path, array $parameters = null, array $files = null, $headers = null);
 
     /**
      * Handles a GraphAPI PUT request.
@@ -32,9 +44,15 @@ interface Requestable
      * @param array $parameters missing keys (access_token, method...)
      *                          may be filled by self
      * @param array $files dictionnary of filenames
-     * @return array|string parsed json or raw body
+     * @param array|bool $headers if it is an array, it will be the headers
+     *                          sent to request. response will be extended. If
+     *                          it's a bool, response may be extended.
+     * @return array|string depends on $headers. an extended response includes
+     *                          status, headers and body. A simple response is
+     *                          just a body. If body is a response, then it is
+     *                          as a json, otherwise raw body will be return.
      */
-    public function put($path, array $parameters = null, array $files = null);
+    public function put($path, array $parameters = null, array $files = null, $headers = null);
 
     /**
      * Handles a GraphAPI DELETE request.
@@ -42,9 +60,15 @@ interface Requestable
      * @param string $path
      * @param array $parameters missing keys (access_token, method...)
      *                          may be filled by self
-     * @return array|string parsed json or raw body
+     * @param array|bool $headers if it is an array, it will be the headers
+     *                          sent to request. response will be extended. If
+     *                          it's a bool, response may be extended.
+     * @return array|string depends on $headers. an extended response includes
+     *                          status, headers and body. A simple response is
+     *                          just a body. If body is a response, then it is
+     *                          as a json, otherwise raw body will be return.
      */
-    public function delete($path, array $parameters = null);
+    public function delete($path, array $parameters = null, $headers = null);
 
     /**
      * Handles a single or multi fql query.
@@ -52,7 +76,13 @@ interface Requestable
      * @param string|array $query or queries
      * @param array $parameters missing keys (access_token, method...)
      *                          may be filled by self
-     * @return array parsed json
+     * @param array|bool $headers if it is an array, it will be the headers
+     *                          sent to request. response will be extended. If
+     *                          it's a bool, response may be extended.
+     * @return array|string depends on $headers. an extended response includes
+     *                          status, headers and body. A simple response is
+     *                          just a body. If body is a response, then it is
+     *                          as a json, otherwise raw body will be return.
      */
-    public function fql($query, array $parameters = null);
+    public function fql($query, array $parameters = null, $headers = null);
 }

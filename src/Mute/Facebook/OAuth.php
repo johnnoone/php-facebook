@@ -78,11 +78,9 @@ class OAuth
      * Fetches an access token, token expiration, and other info from Facebook.
      * Useful when you've received an OAuth code using the server-side authentication process.
      *
-     * @return array of the access token info returned by Facebook (token, expiration, etc.)
-     *
      * @param string $code
      * @param string $redirect_uri
-     * @return array
+     * @return array of the access token info returned by Facebook (token, expiration, etc.)
      */
     public function getAccessToken($code, $redirect_uri = '')
     {
@@ -118,12 +116,11 @@ class OAuth
 
     /**
      * Fetches an access_token with extended expiration time, along with any other information provided by Facebook.
-     * See https://developers.facebook.com/docs/offline-access-deprecation/#extend_token (search for fb_exchange_token).
      *
-     * @param access_token the access token to exchange
-     * @param options any additional parameters to send to Facebook when exchanging tokens.
-     *
-     * @return the access token with extended expiration time and other information (expiration, etc.)
+     * @see https://developers.facebook.com/docs/offline-access-deprecation/#extend_token (search for fb_exchange_token).
+     * @param string $access_token the access token to exchange
+     * @return array the access token with extended expiration time and other
+     *                          information (expiration, etc.)
      */
     public function exchangeAccessToken($access_token)
     {

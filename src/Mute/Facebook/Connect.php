@@ -34,7 +34,7 @@ class Connect
      * want on every call.)
      *
      * @param array $cookie_hash a set of cookies that includes the Facebook cookie.
-     * @return the authenticated user's information as a hash, or null.
+     * @return array the authenticated user's information as a hash, or null.
      *
      */
     public function getUserFromCookies(array $cookies = null)

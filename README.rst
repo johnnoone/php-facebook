@@ -5,6 +5,17 @@ Implements `Graph API`_ and some of the OAuth facilities to operate with Faceboo
 
 This library package requires `PHP 5.3`_ or later.
 
+For generating the API doc, install apigen_, and then run::
+
+     $ apigen -c apigen.neon
+
+For running unittests, install PHPUnit_, and then run::
+
+    $ phpunit -c tests/phpunit.xml
+
+
 .. _Graph API: https://developers.facebook.com/docs/reference/api/
 .. _examples: https://github.com/johnnoone/php-facebook/tree/master/example
 .. _PHP 5.3: http://php.net/releases/5_3_0.php
+.. _apigen: apigen.org
+.. _PHPUnit: www.phpunit.de

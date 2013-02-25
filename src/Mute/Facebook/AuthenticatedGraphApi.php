@@ -31,11 +31,7 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
         $this->requestHandler = $requestHandler;
     }
 
-    /**
-     * {@inheritdoc}
-     * @param bool $extended return the extended response?
-     */
-    public function get($path, array $parameters = null, $headers = false)
+    public function get($path, array $parameters = null, $headers = null)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -46,11 +42,7 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
         return $this->requestHandler->request($path, $parameters, null, $headers);
     }
 
-    /**
-     * {@inheritdoc}
-     * @param bool $extended return the extended response?
-     */
-    public function post($path, array $parameters = null, array $files = null, $headers = false)
+    public function post($path, array $parameters = null, array $files = null, $headers = null)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -61,11 +53,7 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
         return $this->requestHandler->request($path, $parameters, $files, $headers);
     }
 
-    /**
-     * {@inheritdoc}
-     * @param bool $extended return the extended response?
-     */
-    public function put($path, array $parameters = null, array $files = null, $headers = false)
+    public function put($path, array $parameters = null, array $files = null, $headers = null)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -76,11 +64,7 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
         return $this->requestHandler->request($path, $parameters, $files, $headers);
     }
 
-    /**
-     * {@inheritdoc}
-     * @param bool $extended return the extended response?
-     */
-    public function delete($path, array $parameters = null, $headers = false)
+    public function delete($path, array $parameters = null, $headers = null)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -91,12 +75,7 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
         return $this->requestHandler->request($path, $parameters, null, $headers);
     }
 
-    /**
-     * {@inheritdoc}
-     * @link https://developers.facebook.com/docs/technical-guides/fql/
-     * @param bool $extended return the extended response?
-     */
-    public function fql($query, array $parameters = null, $headers = false)
+    public function fql($query, array $parameters = null, $headers = null)
     {
         $parameters = (array) $parameters;
         $parameters += array(

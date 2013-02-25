@@ -28,35 +28,35 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
         $this->requestHandler = $requestHandler;
     }
 
-    public function get($path, array $parameters = null, $headers = false, $batchParams = null)
+    public function get($path, array $parameters = null, $headers = null, $batchParams = null)
     {
-        $this->append($path, 'GET', $parameters, null, $headers = false, $batchParams);
+        $this->append($path, 'GET', $parameters, null, $headers, $batchParams);
 
         return $this;
     }
 
-    public function post($path, array $parameters = null, array $files = null, $headers = false, $batchParams = null)
+    public function post($path, array $parameters = null, array $files = null, $headers = null, $batchParams = null)
     {
-        $this->append($path, 'POST', $parameters, $files, $headers = false, $batchParams);
+        $this->append($path, 'POST', $parameters, $files, $headers, $batchParams);
 
         return $this;
     }
 
-    public function put($path, array $parameters = null, array $files = null, $headers = false, $batchParams = null)
+    public function put($path, array $parameters = null, array $files = null, $headers = null, $batchParams = null)
     {
-        $this->append($path, 'PUT', $parameters, $files, $headers = false, $batchParams);
+        $this->append($path, 'PUT', $parameters, $files, $headers, $batchParams);
 
         return $this;
     }
 
-    public function delete($path, array $parameters = null, $headers = false, $batchParams = null)
+    public function delete($path, array $parameters = null, $headers = null, $batchParams = null)
     {
-        $this->append($path, 'DELETE', $parameters, null, $headers = false, $batchParams);
+        $this->append($path, 'DELETE', $parameters, null, $headers, $batchParams);
 
         return $this;
     }
 
-    public function fql($query, array $parameters = null, $headers = false, $batchParams = null)
+    public function fql($query, array $parameters = null, $headers = null, $batchParams = null)
     {
         $parameters = (array) $parameters;
         if (is_array($query)) {
@@ -76,7 +76,7 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
             $path = 'method/fql.query';
             $parameters['query'] = $query;
         }
-        $this->append($path, 'POST', $parameters, null, $headers = false, $batchParams);
+        $this->append($path, 'POST', $parameters, null, $headers, $batchParams);
 
         return $this;
     }
@@ -125,6 +125,7 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
      * @param string $method
      * @param array $params
      * @param array $files
+     * @param array $headers
      * @param string|array $batchParams
      * @return mixed
      * @todo throw an Exception when max queries is reached

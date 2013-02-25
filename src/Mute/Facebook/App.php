@@ -59,11 +59,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         return $this->api;
     }
 
-    /**
-     * {@inheritdoc}
-     * @param bool $extended return the extended response?
-     */
-    public function get($path, array $parameters = null, $headers = false)
+    public function get($path, array $parameters = null, $headers = null)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -74,11 +70,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         return $this->request($path, $parameters, null, $headers);
     }
 
-    /**
-     * {@inheritdoc}
-     * @param bool $extended return the extended response?
-     */
-    public function post($path, array $parameters = null, array $files = null, $headers = false)
+    public function post($path, array $parameters = null, array $files = null, $headers = null)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -89,11 +81,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         return $this->request($path, $parameters, $files, $headers);
     }
 
-    /**
-     * {@inheritdoc}
-     * @param bool $extended return the extended response?
-     */
-    public function put($path, array $parameters = null, array $files = null, $headers = false)
+    public function put($path, array $parameters = null, array $files = null, $headers = null)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -104,11 +92,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         return $this->request($path, $parameters, $files, $headers);
     }
 
-    /**
-     * {@inheritdoc}
-     * @param bool $extended return the extended response?
-     */
-    public function delete($path, array $parameters = null, $headers = false)
+    public function delete($path, array $parameters = null, $headers = null)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -119,11 +103,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         return $this->request($path, $parameters, null, $headers);
     }
 
-    /**
-     * {@inheritdoc}
-     * @param bool $extended return the extended response?
-     */
-    public function fql($query, array $parameters = null, $headers = false)
+    public function fql($query, array $parameters = null, $headers = null)
     {
         $parameters = (array) $parameters;
         $parameters += array(
@@ -196,7 +176,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         }
     }
 
-    public function request($path, array $parameters = null, array $files = null, $headers = false)
+    public function request($path, array $parameters = null, array $files = null, $headers = null)
     {
         $method = 'POST';
         if (isset($parameters['method'])) {

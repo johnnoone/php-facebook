@@ -1,0 +1,12 @@
+# API builder
+# usage: apigen -c apigen.neon
+
+source: src
+destination: api
+title: Requesting Facebook’s GraphAPI
+main: Mute\Facebook
+php: no
+todo: yes
+source-code: no
+update-check: no
+report: api/checkstyle.txt
