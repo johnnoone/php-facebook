@@ -1,9 +1,77 @@
 Mute Facebook
 =============
 
+
 Implements `Graph API`_ and some of the OAuth facilities to operate with Facebook. See `examples`_ for usage.
 
 This library package requires `PHP 5.3`_ or later.
+
+
+How to use this library
+-----------------------
+
+Simple requests::
+
+    <?php
+
+    $app = new \Mute\Facebook\App(APP_ID, APP_SECRET, APP_NAMESPACE);
+
+    // get name of a user
+    $response = $app->get(USER_ID, array('fields' => 'name'));
+    echo "user's name is " . $response['name'];
+
+    // or the full response
+    $response = $app->get(USER_ID, array('fields' => 'name'), null, true);
+    echo "user's name is " . $response['body']['name'];
+
+    // post a photo
+    $response = $app->post(USER_ID . '/photo', null, array(
+        'source' => PHOTO_FILENAME
+    ));
+
+    // get the fresh list friends
+    $response = $app->get(USER_ID . '/friends', null, null, array(
+        'If-None-Match: ' . PREVIOUS_ETAG,
+    ));
+
+By default, app access token will be automatically append. If you need to request with a custom access_token::
+
+    <?php
+    $data = $app->get('me', array(
+        'access_token' => MY_ACCESS_TOKEN,
+    ));
+    // or
+    $customApp = $app->getAuthenticatedGraphApi(MY_ACCESS_TOKEN);
+    $data = $customApp->get('me');
+
+Batched requests::
+
+    <?php
+    // only bodies
+    $responses = $customApp->batch()
+        ->get('me')
+        ->get('me/friends', array('limit' => 50))
+        ->execute();
+    // or
+    $responses = $customApp->batch(function($app) {
+        $app->get('me');
+        $app->get('me/friends', array('limit' => 50));
+    });
+
+    // for full responses, you can do
+    $responses = $customApp->getAuthenticatedGraphApi(MY_ACCESS_TOKEN)->batch()
+        ->get('me')
+        ->get('me/friends', array('limit' => 50))
+        ->execute(true);
+    // or
+    $responses = $customApp->batch(function($customApp) {
+        $customApp->get('me');
+        $customApp->get('me/friends', array('limit' => 50));
+    }, true);
+
+
+More
+----
 
 For generating the API doc, install apigen_, and then run::
 

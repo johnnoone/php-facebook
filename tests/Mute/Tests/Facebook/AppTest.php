@@ -50,13 +50,16 @@ class AppTest extends PHPUnit_Framework_TestCase
 
     // public function testEtag()
     // {
-    //     $this->assertEquals($response1['body'], $response2['body']);
+    //     $app = new App(self::APP_ID, self::APP_SECRET, self::APP_NAMESPACE);
+    //     $response1 = $app->get(self::APP_ID, null, array('Accept: *'));
     //     $this->assertArrayHasKey('ETag', $response1['headers']);
     //     $headers = array(
     //         'If-None-Match: ' . $response1['headers']['ETag'],
     //     );
-    //     $response3 = $app->get(self::APP_ID, null, $headers);
-    //     $this->assertEquals(self::APP_ID, @$response['body']['id']);
-    //     $this->assertEquals(self::APP_NAMESPACE, @$response['body']['namespace']);
+    //     $response2 = $app->get(self::APP_ID, null, $headers);
+    //     var_dump($response2, $response1['headers']['ETag']);
+    //
+    //     $response3 = $app->batch()->get(self::APP_ID, null, $headers)->execute(true);
+    //     var_dump($response3, $response1['headers']['ETag']);
     // }
 }
