@@ -58,6 +58,8 @@ class AppTest extends PHPUnit_Framework_TestCase
         $this->assertNotEquals($initial, $changed);
         $this->assertEquals(null, @$initial['foo']);
         $this->assertEquals('bar', @$changed['foo']);
+        $changed2 = $app->setOptions('foo', 'bar')->getOptions();
+        $this->assertEquals($changed, $changed2);
     }
 
     // public function testEtag()

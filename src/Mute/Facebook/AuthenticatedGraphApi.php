@@ -5,7 +5,7 @@ namespace Mute\Facebook;
 use Closure;
 use Mute\Facebook\Bases\AccessToken;
 use Mute\Facebook\Bases\Batchable;
-use Mute\Facebook\Bases\Options;
+use Mute\Facebook\Bases\Configurable;
 use Mute\Facebook\Bases\Requestable;
 use Mute\Facebook\Bases\RequestHandler;
 use Mute\Facebook\Bases\RequestHandlerAware;
@@ -14,7 +14,7 @@ use Mute\Facebook\Exception\InvalidArgumentException;
 /**
  * Simple App wrapper which inject relevant access_token.
  */
-class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, RequestHandlerAware
+class AuthenticatedGraphApi implements AccessToken, Batchable, Configurable, Requestable, RequestHandlerAware
 {
     /**
      * @var string
@@ -43,10 +43,16 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
         return $this->localOptions;
     }
 
-    public function setOptions(array $options = null)
+    public function setOptions($name, $value = null)
     {
-        if ($options) {
-            $this->localOptions = array_merge($this->localOptions, $options);
+        if (is_array($name)) {
+            $this->localOptions = array_merge($this->localOptions, $name);
+        }
+        elseif (is_string($name)) {
+            $this->localOptions[$name] = $value;
+        }
+        else {
+            throw new InvalidArgumentException('first argument must be an array or a string');
         }
 
         return $this;

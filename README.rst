@@ -73,7 +73,7 @@ Sometimes you need more control of the http request. for this you can manipulate
 
     <?php
     // fetching a paginated list of friends can very long, set up the timeout to 30 seconds
-    $app->setOptions(array('timeout' => 60));
+    $app->setOptions('timeout', 60);
     $friends = $app->get(USER_ID . '/friends', array(
         'offset' => 5000,
         'limit' => 5000,

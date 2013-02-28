@@ -6,7 +6,7 @@ use Closure;
 use Exception;
 use Mute\Facebook\Bases\AccessToken;
 use Mute\Facebook\Bases\Batchable;
-use Mute\Facebook\Bases\Options;
+use Mute\Facebook\Bases\Configurable;
 use Mute\Facebook\Bases\Requestable;
 use Mute\Facebook\Bases\RequestHandler;
 use Mute\Facebook\Exception\CurlException;
@@ -16,7 +16,7 @@ use Mute\Facebook\Exception\InvalidArgumentException;
 use Mute\Facebook\Exception\OAuthSignatureException;
 use Mute\Facebook\Util;
 
-class App implements AccessToken, Batchable, Options, Requestable, RequestHandler
+class App implements AccessToken, Batchable, Configurable, Requestable, RequestHandler
 {
     protected $id;
     protected $secret;
@@ -84,10 +84,16 @@ class App implements AccessToken, Batchable, Options, Requestable, RequestHandle
         return $this->globalOptions;
     }
 
-    public function setOptions(array $options = null)
+    public function setOptions($name, $value = null)
     {
-        if ($options) {
-            $this->globalOptions = array_merge($this->globalOptions, $options);
+        if (is_array($name)) {
+            $this->globalOptions = array_merge($this->globalOptions, $name);
+        }
+        elseif (is_string($name)) {
+            $this->globalOptions[$name] = $value;
+        }
+        else {
+            throw new InvalidArgumentException('first argument must be an array or a string');
         }
 
         return $this;
