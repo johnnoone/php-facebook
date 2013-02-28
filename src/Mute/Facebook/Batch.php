@@ -3,14 +3,14 @@
 namespace Mute\Facebook;
 
 use Mute\Facebook\Bases\AccessToken;
+use Mute\Facebook\Bases\Options;
 use Mute\Facebook\Bases\Requestable;
 use Mute\Facebook\Bases\RequestHandler;
 use Mute\Facebook\Bases\RequestHandlerAware;
 use Mute\Facebook\Exception\InvalidArgumentException;
 
-class Batch implements AccessToken, Requestable, RequestHandlerAware
+class Batch implements AccessToken, Options, Requestable, RequestHandlerAware
 {
-
     protected $queries;
     protected $attachedFiles;
     protected $fallbackAccessToken;
@@ -20,12 +20,39 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
      */
     protected $requestHandler;
 
-    public function __construct($access_token, RequestHandler $requestHandler)
+    /**
+     * @var array
+     */
+    protected $localOptions;
+
+    public function __construct($access_token, RequestHandler $requestHandler, array $options = null)
     {
         $this->queries = array();
         $this->attachedFiles = array();
         $this->fallbackAccessToken = $access_token;
         $this->requestHandler = $requestHandler;
+        $this->localOptions = (array) $options;
+    }
+
+    public function getOptions()
+    {
+        return $this->localOptions;
+    }
+
+    public function setOptions(array $options = null)
+    {
+        if ($localOptions) {
+            $this->localOptions = array_merge($this->localOptions, $options);
+        }
+
+        return $this;
+    }
+
+    public function resetOptions()
+    {
+        $this->localOptions = array();
+
+        return $this;
     }
 
     public function get($path, array $parameters = null, $headers = null, $batchParams = null)
@@ -93,7 +120,7 @@ class Batch implements AccessToken, Requestable, RequestHandlerAware
         );
         $files = $this->attachedFiles;
 
-        $response = $this->requestHandler->request('', $parameters, $files);
+        $response = $this->requestHandler->request('', $parameters, $files, null, $this->localOptions);
         $this->queries = array();
         $this->attachedFiles = array();
         if ($extended) {

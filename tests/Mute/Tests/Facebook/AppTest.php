@@ -48,6 +48,18 @@ class AppTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(self::APP_NAMESPACE, @$response['body']['namespace']);
     }
 
+    public function testOptions()
+    {
+        $app = new App(self::APP_ID, self::APP_SECRET, self::APP_NAMESPACE);
+        $initial = $app->getOptions();
+        $changed = $app->setOptions(array('foo' => 'bar'))->getOptions();
+        $resetted = $app->resetOptions()->getOptions();
+        $this->assertEquals($initial, $resetted);
+        $this->assertNotEquals($initial, $changed);
+        $this->assertEquals(null, @$initial['foo']);
+        $this->assertEquals('bar', @$changed['foo']);
+    }
+
     // public function testEtag()
     // {
     //     $app = new App(self::APP_ID, self::APP_SECRET, self::APP_NAMESPACE);

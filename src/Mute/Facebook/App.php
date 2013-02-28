@@ -6,6 +6,7 @@ use Closure;
 use Exception;
 use Mute\Facebook\Bases\AccessToken;
 use Mute\Facebook\Bases\Batchable;
+use Mute\Facebook\Bases\Options;
 use Mute\Facebook\Bases\Requestable;
 use Mute\Facebook\Bases\RequestHandler;
 use Mute\Facebook\Exception\CurlException;
@@ -15,21 +16,39 @@ use Mute\Facebook\Exception\InvalidArgumentException;
 use Mute\Facebook\Exception\OAuthSignatureException;
 use Mute\Facebook\Util;
 
-class App implements AccessToken, Batchable, Requestable, RequestHandler
+class App implements AccessToken, Batchable, Options, Requestable, RequestHandler
 {
     protected $id;
     protected $secret;
     protected $namespace;
     protected $api = "https://graph.facebook.com";
 
+    const OPT_CONNECT_TIMEOUT = 'connect_timeout';
+    const OPT_TIMEOUT = 'timeout';
+    const OPT_UPLOAD_BOOT = 'upload_boot';
+
     /**
+     * Theses options will be used by every calls that use the current
+     * requestHandler (Batches, AuthenticatedGraphApi...).
+     *
+     * If you need case by case granularity, considere to fork the current
+     * requestHandler with self::getAuthenticatedGraphApi, and then manipulate
+     * his local options.
+     *
      * @var array
      */
-    protected $options = array(
-        'connect_timeout' => 5,     // in seconds. connect timeout
-        'timeout' => 10,            // in seconds. timeout for connect + response
-        'upload_boot' => 64300,     // bytes per seconds. heuristic for file uploading, 64300 is OK for 512 Kps.
+    protected $globalOptions = array(
+        self::OPT_CONNECT_TIMEOUT => 5,     // in seconds. connect timeout
+        self::OPT_TIMEOUT => 10,            // in seconds. timeout for connect + response
+        self::OPT_UPLOAD_BOOT => 64300,     // bytes per seconds. heuristic for file uploading, 64300 is OK for 512 Kps.
     );
+
+    /**
+     * Used when resetting options
+     *
+     * @var array
+     */
+    private $initialOptions;
 
     function __construct($app_id, $app_secret, $app_namespace = null)
     {
@@ -37,6 +56,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         $this->secret = $app_secret;
         $this->namespace = $app_namespace;
         $this->accessToken = $this->id . '|' . $this->secret;
+        $this->initialOptions = $this->globalOptions;
     }
 
     public function getId()
@@ -57,6 +77,27 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
     public function getApi()
     {
         return $this->api;
+    }
+
+    public function getOptions()
+    {
+        return $this->globalOptions;
+    }
+
+    public function setOptions(array $options = null)
+    {
+        if ($options) {
+            $this->globalOptions = array_merge($this->globalOptions, $options);
+        }
+
+        return $this;
+    }
+
+    public function resetOptions()
+    {
+        $this->globalOptions = $this->initialOptions;
+
+        return $this;
     }
 
     public function get($path, array $parameters = null, $headers = null)
@@ -176,7 +217,7 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
         }
     }
 
-    public function request($path, array $parameters = null, array $files = null, $headers = null)
+    public function request($path, array $parameters = null, array $files = null, $headers = null, array $options = null)
     {
         $method = 'POST';
         if (isset($parameters['method'])) {
@@ -199,7 +240,11 @@ class App implements AccessToken, Batchable, Requestable, RequestHandler
             throw new InvalidArgumentException('$headers must be a bool or an array');
         }
 
-        $options = filter_var_array($this->options, array(
+        $options = is_array($options)
+            ? array_merge($this->globalOptions, $options)
+            : $this->globalOptions;
+
+        $options = filter_var_array($options, array(
             'connect_timeout' => FILTER_VALIDATE_INT,
             'timeout' => FILTER_VALIDATE_INT,
             'upload_boot' => FILTER_VALIDATE_INT,

@@ -5,6 +5,7 @@ namespace Mute\Facebook;
 use Closure;
 use Mute\Facebook\Bases\AccessToken;
 use Mute\Facebook\Bases\Batchable;
+use Mute\Facebook\Bases\Options;
 use Mute\Facebook\Bases\Requestable;
 use Mute\Facebook\Bases\RequestHandler;
 use Mute\Facebook\Bases\RequestHandlerAware;
@@ -25,10 +26,37 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
      */
     protected $requestHandler;
 
+    /**
+     * @var array
+     */
+    protected $localOptions;
+
     function __construct($access_token, RequestHandler $requestHandler)
     {
         $this->accessToken = $access_token;
         $this->requestHandler = $requestHandler;
+        $this->localOptions = array();
+    }
+
+    public function getOptions()
+    {
+        return $this->localOptions;
+    }
+
+    public function setOptions(array $options = null)
+    {
+        if ($options) {
+            $this->localOptions = array_merge($this->localOptions, $options);
+        }
+
+        return $this;
+    }
+
+    public function resetOptions()
+    {
+        $this->localOptions = array();
+
+        return $this;
     }
 
     public function get($path, array $parameters = null, $headers = null)
@@ -39,7 +67,7 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
             'method' => 'GET',
         );
 
-        return $this->requestHandler->request($path, $parameters, null, $headers);
+        return $this->requestHandler->request($path, $parameters, null, $headers, $this->localOptions);
     }
 
     public function post($path, array $parameters = null, array $files = null, $headers = null)
@@ -50,7 +78,7 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
             'method' => 'POST',
         );
 
-        return $this->requestHandler->request($path, $parameters, $files, $headers);
+        return $this->requestHandler->request($path, $parameters, $files, $headers, $this->localOptions);
     }
 
     public function put($path, array $parameters = null, array $files = null, $headers = null)
@@ -61,7 +89,7 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
             'method' => 'PUT',
         );
 
-        return $this->requestHandler->request($path, $parameters, $files, $headers);
+        return $this->requestHandler->request($path, $parameters, $files, $headers, $this->localOptions);
     }
 
     public function delete($path, array $parameters = null, $headers = null)
@@ -72,7 +100,7 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
             'method' => 'DELETE',
         );
 
-        return $this->requestHandler->request($path, $parameters, null, $headers);
+        return $this->requestHandler->request($path, $parameters, null, $headers, $this->localOptions);
     }
 
     public function fql($query, array $parameters = null, $headers = null)
@@ -95,12 +123,12 @@ class AuthenticatedGraphApi implements AccessToken, Batchable, Requestable, Requ
         }
         $parameters['q'] = $query;
 
-        return $this->requestHandler->request('fql', $parameters, null, $headers);
+        return $this->requestHandler->request('fql', $parameters, null, $headers, $this->localOptions);
     }
 
     public function batch(Closure $commands = null, $extended = false)
     {
-        $batch = new Batch($this->accessToken, $this->requestHandler);
+        $batch = new Batch($this->accessToken, $this->requestHandler, $this->localOptions);
         if ($commands) {
             $commands($batch);
             $batch = $batch->execute($extended);

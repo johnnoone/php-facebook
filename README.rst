@@ -69,6 +69,17 @@ Batched requests::
         $customApp->get('me/friends', array('limit' => 50));
     }, true);
 
+Sometimes you need more control of the http request. for this you can manipulate the options::
+
+    <?php
+    // fetching a paginated list of friends can very long, set up the timeout to 30 seconds
+    $app->setOptions(array('timeout' => 60));
+    $friends = $app->get(USER_ID . '/friends', array(
+        'offset' => 5000,
+        'limit' => 5000,
+    ));
+    // once finished, you can reset the options
+    $app->resetOptions();
 
 More
 ----
