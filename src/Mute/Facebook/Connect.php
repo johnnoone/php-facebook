@@ -33,48 +33,37 @@ class Connect
      * method has to make a call to FB's servers anyway, which you don't
      * want on every call.)
      *
-     * @param array $cookie_hash a set of cookies that includes the Facebook cookie.
-     * @return array the authenticated user's information as a hash, or null.
-     *
+     * @param array $cookies a set of cookies that includes the Facebook cookie
+     * @return array|null
      */
-    public function getUserFromCookies(array $cookies = null)
+    public function getCookie(array $cookies = null)
     {
         if ($cookies === null) {
             $cookies = $_COOKIE;
         }
 
         if ($data = @$cookies[$this->getCookieName()]) {
-            return $this->parseSignedCookie($data);
+            return $this->app->parseSignedRequest($data);
         }
     }
 
-    public function parseSignedCookie($fb_cookie)
+    public function getMetadataCookieName() {
+      return 'fbm_' . $this->app->getId();
+    }
+
+    /**
+    * @param array $cookies a set of cookies that includes the Facebook cookie
+    * @return array|null
+     */
+    public function getMetadataCookie(array $cookies = null)
     {
-        $components = $this->app->parseSignedRequest($fb_cookie);
-        if ($code = @$components["code"]) {
-            try {
-                $token_info = $this->getAccessToken($code, array('redirect_uri' => ''));
-            }
-            catch (OAuthTokenRequestException $e) {
-                if ($e->getType() == 'GraphAPIException' && strpos($e->getMessage(), 'Code was invalid or expired') !== false) {
-                    return null;
-                }
-
-                throw $e;
-            }
-
-            if ($token_info) {
-                return $token_info + $components;
-            }
-
-            return $components;
+        if ($cookies === null) {
+            $cookies = $_COOKIE;
         }
 
-        user_error(
-            'Signed cookie didn\'t contain Facebook OAuth code! Components: ' . json_encode($components),
-            E_USER_WARNING
-        );
-
-        return null;
+        if ($data = @$cookies[$this->getMetadataCookieName()]) {
+            parse_str($data, $response);
+            return $response;
+        }
     }
 }
