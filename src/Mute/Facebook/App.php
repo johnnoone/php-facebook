@@ -24,6 +24,7 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
     protected $api = "https://graph.facebook.com";
 
     const OPT_CONNECT_TIMEOUT = 'connect_timeout';
+    const OPT_CONTENT_TYPE = 'content_type';
     const OPT_TIMEOUT = 'timeout';
     const OPT_UPLOAD_BOOT = 'upload_boot';
 
@@ -38,9 +39,23 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
      * @var array
      */
     protected $globalOptions = array(
-        self::OPT_CONNECT_TIMEOUT => 5,     // in seconds. connect timeout
-        self::OPT_TIMEOUT => 10,            // in seconds. timeout for connect + response
-        self::OPT_UPLOAD_BOOT => 64300,     // bytes per seconds. heuristic for file uploading, 64300 is OK for 512 Kps.
+        /**
+         * @var int in seconds. connect timeout
+         */
+        self::OPT_CONNECT_TIMEOUT => 5,
+        /**
+         * @todo write an unittest
+         * @var string http header. ensure this Content-Type
+         */
+        self::OPT_CONTENT_TYPE => 'multipart/form-data; charset=UTF-8',
+        /**
+         * @var int in seconds. timeout for connect + response
+         */
+        self::OPT_TIMEOUT => 10,
+        /**
+         * @var int bytes per seconds. heuristic for file uploading, 64300 is OK for 512 Kps
+         */
+        self::OPT_UPLOAD_BOOT => 64300,
     );
 
     /**
@@ -223,6 +238,12 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
         }
     }
 
+    /**
+     * If Content-Type is not provided, be sure that $parameters are encoded
+     * like specified into $options[OPT_CONTENT_TYPE].
+     *
+     * {@inheritdoc}
+     */
     public function request($path, array $parameters = null, array $files = null, $headers = null, array $options = null)
     {
         $method = 'POST';
@@ -231,12 +252,31 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
             unset($parameters['method']);
         }
 
+        $options = is_array($options)
+            ? array_merge($this->globalOptions, $options)
+            : $this->globalOptions;
+
+        $options = filter_var_array($options, array(
+            self::OPT_CONNECT_TIMEOUT => FILTER_VALIDATE_INT,
+            self::OPT_TIMEOUT => FILTER_VALIDATE_INT,
+            self::OPT_UPLOAD_BOOT => FILTER_VALIDATE_INT,
+            self::OPT_CONTENT_TYPE => array(
+                'filter' => FILTER_VALIDATE_REGEXP,
+                'options' => array(
+                    'regexp' => '/\w+/i',
+            )),
+        ));
+
         if (!$headers) {
             $headers = array();
             $extended = false;
         }
         elseif (is_array($headers)) {
             $extended = true;
+            foreach ($headers as $header) if (stripos($header, 'Content-Type:') !== false) {
+                unset($options[self::OPT_CONTENT_TYPE]);
+                break;
+            }
         }
         elseif (is_bool($headers)) {
             $extended = $headers;
@@ -245,33 +285,6 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
         else {
             throw new InvalidArgumentException('$headers must be a bool or an array');
         }
-
-        $options = is_array($options)
-            ? array_merge($this->globalOptions, $options)
-            : $this->globalOptions;
-
-        $options = filter_var_array($options, array(
-            'connect_timeout' => FILTER_VALIDATE_INT,
-            'timeout' => FILTER_VALIDATE_INT,
-            'upload_boot' => FILTER_VALIDATE_INT,
-        ));
-
-        $curlOptions = array(
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_USERAGENT => "Mute/Facebook-1.0 (https://github.com/johnnoone/php-facebook)",
-            CURLOPT_CONNECTTIMEOUT => $options['connect_timeout']
-                ? $options['connect_timeout']
-                : 5,
-            CURLOPT_TIMEOUT => $options['timeout']
-                ? $options['timeout']
-                : 5,
-            CURLOPT_MAXREDIRS => 10,        // stop after 10 redirects
-            CURLOPT_FAILONERROR => false,   // lets 4** http codes be processed
-            CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_HEADER => $extended,
-            CURLOPT_CUSTOMREQUEST => $method,
-        );
 
         $postFields = array();
         if ($parameters) foreach ($parameters as $name => $param) {
@@ -283,7 +296,7 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
             $postFields[$name] = '@' . realpath($file);
             // On *nix it's hopefully not affected by PHP time limit,
             // but on Windows try to send the smallest files you can.
-            if ($boost = $options['upload_boot']) {
+            if ($boost = $options[self::OPT_UPLOAD_BOOT]) {
                 $curlOptions[CURLOPT_TIMEOUT] += filesize($file) / $boost;
             }
         }
@@ -293,13 +306,38 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
             if ($method == 'GET') {
                 $url .= strpos('?', $url) === false ? '?' : '&';
                 $url .= http_build_query($postFields, null, '&');
+                if (isset($options[self::OPT_CONTENT_TYPE])) {
+                    $headers[] = 'Content-Type: ' . $options[self::OPT_CONTENT_TYPE];
+                }
             }
             else {
                 $curlOptions[CURLOPT_POSTFIELDS] = $files
                     ? $postFields
                     : http_build_query($postFields, null, '&');
+                if (isset($options[self::OPT_CONTENT_TYPE])) {
+                    $headers[] = 'Content-Type: ' . strtr($options[self::OPT_CONTENT_TYPE], array(
+                        'multipart/form-data' => 'application/x-www-form-urlencoded'
+                    ));
+                }
             }
         }
+
+        $curlOptions = array(
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_USERAGENT => "Mute/Facebook-1.0 (https://github.com/johnnoone/php-facebook)",
+            CURLOPT_CONNECTTIMEOUT => $options[self::OPT_CONNECT_TIMEOUT]
+                ? $options[self::OPT_CONNECT_TIMEOUT]
+                : 5,
+            CURLOPT_TIMEOUT => $options[self::OPT_TIMEOUT]
+                ? $options[self::OPT_TIMEOUT]
+                : 5,
+            CURLOPT_MAXREDIRS => 10,        // stop after 10 redirects
+            CURLOPT_FAILONERROR => false,   // lets 4** http codes be processed
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_HEADER => $extended,
+            CURLOPT_CUSTOMREQUEST => $method,
+        );
 
         $ch = curl_init($url);
         curl_setopt_array($ch, $curlOptions);
