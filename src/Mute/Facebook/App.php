@@ -239,8 +239,16 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
     }
 
     /**
+     * Notes
+     * -----
+     *
      * If Content-Type is not provided, be sure that $parameters are encoded
      * like specified into $options[OPT_CONTENT_TYPE].
+     *
+     * When sending files, $options[OPT_UPLOAD_BOOT] is used to gives some
+     * additional time to avoid timelimit black-out. On *nix it's hopefully not
+     * affected by PHP time limit, but on Windows try to send the smallest
+     * files you can, or adapt set_time_limit().
      *
      * {@inheritdoc}
      */
@@ -294,8 +302,7 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
         }
         if ($files) foreach ($files as $name => $file) {
             $postFields[$name] = '@' . realpath($file);
-            // On *nix it's hopefully not affected by PHP time limit,
-            // but on Windows try to send the smallest files you can.
+            // timeout booster
             if ($boost = $options[self::OPT_UPLOAD_BOOT]) {
                 $curlOptions[CURLOPT_TIMEOUT] += filesize($file) / $boost;
             }
