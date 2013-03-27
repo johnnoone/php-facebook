@@ -320,7 +320,11 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
             $content = substr($content, -$info['download_content_length']);
         }
 
-        if ($info['content_type'] == 'text/javascript; charset=UTF-8') {
+        if (in_array($info['content_type'], array(
+            'text/javascript; charset=UTF-8',
+            'application/json; charset=UTF-8',
+            'application/json',
+        ))) {
             $content = json_decode($content, true);
             if (is_array($content) && isset($content['error'])) {
 

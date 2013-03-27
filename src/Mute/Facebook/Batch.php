@@ -142,7 +142,11 @@ class Batch implements AccessToken, Configurable, Requestable, RequestHandlerAwa
             $body = $response['body'];
             foreach ($response['headers'] as $header) if (
                      $header['name'] == 'Content-Type' &&
-                     $header['value'] == 'text/javascript; charset=UTF-8') {
+                     in_array($header['value'], array(
+                         'text/javascript; charset=UTF-8',
+                         'application/json; charset=UTF-8',
+                         'application/json',
+                     ))) {
 
                 return json_decode($body, true);
             }
