@@ -6,6 +6,11 @@ use Mute\Facebook\Exception\InvalidArgumentException;
 
 class Util
 {
+    public static function makeAppSecretProof($access_token, $app_secret)
+    {
+        return hash_hmac('sha256', $access_token, $app_secret);
+    }
+
     public static function makeSignedRequest(array $data, $app_secret)
     {
         $data += array(

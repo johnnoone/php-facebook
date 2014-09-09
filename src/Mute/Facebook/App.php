@@ -25,6 +25,9 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
     protected $api = 'https://graph.facebook.com';
     protected $version;
 
+    public $accessToken;
+    public $useAppSecretProof = true;
+
     const OPT_CONNECT_TIMEOUT = 'connect_timeout';
     const OPT_TIMEOUT = 'timeout';
     const OPT_UPLOAD_BOOT = 'upload_boot';
@@ -240,6 +243,13 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
 
     public function request($path, array $parameters = null, array $files = null, $headers = null, array $options = null)
     {
+        $parameters = (array) $parameters;
+        if ($this->useAppSecretProof && isset($parameters['access_token'])) {
+            $proof = Util::makeAppSecretProof($parameters['access_token'],
+                                              $this->secret);
+            $parameters['appsecret_proof'] = $proof;
+        }
+
         $method = 'POST';
         if (isset($parameters['method'])) {
             $method = $parameters['method'];
