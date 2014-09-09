@@ -81,6 +81,12 @@ Sometimes you need more control of the http request. for this you can manipulate
     // once finished, you can reset the options
     $app->resetOptions();
 
+Api will hit default graph api version. You may change version::
+
+    <?php
+    $app = $app->changeVersion('v2.0');
+
+
 More
 ----
 

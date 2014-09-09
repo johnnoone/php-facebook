@@ -7,8 +7,8 @@
  * file that was distributed with this source code.
  *
  * @author Xavier Barbosa <clint.northwood@gmail.com>
- * @copyright Copyright (c) 2012, Xavier Barbosa
- * @license http://www.gnu.org/licenses/gpl.html
+ * @copyright Copyright (c) 2012-2014, Xavier Barbosa
+ * @license http://opensource.org/licenses/MIT
  **/
 
 spl_autoload_register(function ($classname) {
