@@ -9,6 +9,7 @@ use Mute\Facebook\Bases\Batchable;
 use Mute\Facebook\Bases\Configurable;
 use Mute\Facebook\Bases\Requestable;
 use Mute\Facebook\Bases\RequestHandler;
+use Mute\Facebook\Bases\Versionned;
 use Mute\Facebook\Exception\CurlException;
 use Mute\Facebook\Exception\GraphAPIException;
 use Mute\Facebook\Exception\HTTPException;
@@ -16,12 +17,13 @@ use Mute\Facebook\Exception\InvalidArgumentException;
 use Mute\Facebook\Exception\OAuthSignatureException;
 use Mute\Facebook\Util;
 
-class App implements AccessToken, Batchable, Configurable, Requestable, RequestHandler
+class App implements AccessToken, Batchable, Configurable, Requestable, RequestHandler, Versionned
 {
     protected $id;
     protected $secret;
     protected $namespace;
-    protected $api = "https://graph.facebook.com";
+    protected $api = 'https://graph.facebook.com';
+    protected $version;
 
     const OPT_CONNECT_TIMEOUT = 'connect_timeout';
     const OPT_TIMEOUT = 'timeout';
@@ -50,13 +52,14 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
      */
     private $initialOptions;
 
-    function __construct($app_id, $app_secret, $app_namespace = null)
+    function __construct($app_id, $app_secret, $app_namespace = null, $version = null)
     {
         $this->id = $app_id;
         $this->secret = $app_secret;
         $this->namespace = $app_namespace;
         $this->accessToken = $this->id . '|' . $this->secret;
         $this->initialOptions = $this->globalOptions;
+        $this->version = $version;
     }
 
     public function getId()
@@ -104,6 +107,18 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
         $this->globalOptions = $this->initialOptions;
 
         return $this;
+    }
+
+    public function getVersion()
+    {
+        return $this->version;
+    }
+
+    public function changeVersion($version = null)
+    {
+        $app = clone $this;
+        $app->version = $version;
+        return $app;
     }
 
     public function get($path, array $parameters = null, $headers = null)
@@ -259,7 +274,7 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
         $curlOptions = array(
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_USERAGENT => "Mute/Facebook-1.0 (https://github.com/johnnoone/php-facebook)",
+            CURLOPT_USERAGENT => "Mute/Facebook-2.0 (https://github.com/johnnoone/php-facebook)",
             CURLOPT_CONNECTTIMEOUT => $options['connect_timeout']
                 ? $options['connect_timeout']
                 : 5,
@@ -288,7 +303,12 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
             }
         }
 
-        $url = $this->api . '/' . ltrim($path, '/');
+        $url = rtrim($this->api, '/');
+        if ($this->version) {
+            $url .= '/' . $this->version;
+        }
+
+        $url .= '/' . ltrim($path, '/');
         if ($postFields) {
             if ($method == 'GET') {
                 $url .= strpos('?', $url) === false ? '?' : '&';
