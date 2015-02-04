@@ -243,6 +243,12 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
 
     public function request($path, array $parameters = null, array $files = null, $headers = null, array $options = null)
     {
+        list($url, $curlOptions, $extended) = $this->prepareRequest($path, $parameters, $files, $headers, $options);
+        return $this->executeRequest($url, $curlOptions, $extended);
+    }
+
+    protected function prepareRequest($path, array $parameters = null, array $files = null, $headers = null, array $options = null)
+    {
         $parameters = (array) $parameters;
         if ($this->useAppSecretProof && isset($parameters['access_token'])) {
             $proof = Util::makeAppSecretProof($parameters['access_token'],
@@ -331,6 +337,11 @@ class App implements AccessToken, Batchable, Configurable, Requestable, RequestH
             }
         }
 
+        return array($url, $curlOptions, $extended);
+    }
+
+    protected function executeRequest($url, $curlOptions, $extended)
+    {
         $ch = curl_init($url);
         curl_setopt_array($ch, $curlOptions);
 
