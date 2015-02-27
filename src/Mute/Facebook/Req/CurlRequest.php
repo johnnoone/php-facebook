@@ -4,6 +4,10 @@ namespace Mute\Facebook\Req;
 
 use Mute\Facebook\App;
 use Mute\Facebook\Bases\RequestHandler;
+use Mute\Facebook\Exception\CurlException;
+use Mute\Facebook\Exception\GraphAPIException;
+use Mute\Facebook\Exception\HTTPException;
+use Mute\Facebook\Exception\InvalidArgumentException;
 
 
 class CurlRequest implements RequestHandler
