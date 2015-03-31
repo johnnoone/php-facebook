@@ -57,10 +57,10 @@ class CurlRequest implements RequestHandler
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_USERAGENT => $this->user_agent,
-            CURLOPT_CONNECTTIMEOUT => $options['connect_timeout']
+            CURLOPT_CONNECTTIMEOUT => isset($options['connect_timeout'])
                 ? $options['connect_timeout']
                 : 5,
-            CURLOPT_TIMEOUT => $options['timeout']
+            CURLOPT_TIMEOUT => isset($options['timeout'])
                 ? $options['timeout']
                 : 5,
             CURLOPT_MAXREDIRS => 10,        // stop after 10 redirects
@@ -80,7 +80,7 @@ class CurlRequest implements RequestHandler
             $postFields[$name] = '@' . realpath($file);
             // On *nix it's hopefully not affected by PHP time limit,
             // but on Windows try to send the smallest files you can.
-            if ($boost = $options['upload_boot']) {
+            if ($boost = @$options['upload_boot']) {
                 $curlOptions[CURLOPT_TIMEOUT] += filesize($file) / $boost;
             }
         }
