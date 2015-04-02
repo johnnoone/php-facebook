@@ -62,4 +62,17 @@ class Util
     {
         return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
     }
+
+    public static function curlFile($filename, $mimetype=null, $postname=null)
+    {
+        // this function has been implemented in PHP >= 5.5
+        if (function_exists('curl_file_create')) {
+            return curl_file_create($filename, $mimetype, $postname);
+        }
+        else {
+            return "@$filename;filename="
+                . ($postname ?: basename($filename))
+                . ($mimetype ? ";type=$mimetype" : '');
+        }
+    }
 }

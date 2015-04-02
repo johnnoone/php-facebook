@@ -8,6 +8,7 @@ use Mute\Facebook\Exception\CurlException;
 use Mute\Facebook\Exception\GraphAPIException;
 use Mute\Facebook\Exception\HTTPException;
 use Mute\Facebook\Exception\InvalidArgumentException;
+use Mute\Facebook\Util;
 
 
 class CurlRequest implements RequestHandler
@@ -77,7 +78,7 @@ class CurlRequest implements RequestHandler
                 : json_encode($param);
         }
         if ($files) foreach ($files as $name => $file) {
-            $postFields[$name] = '@' . realpath($file);
+            $postFields[$name] = Util::curlFile($file);
             // On *nix it's hopefully not affected by PHP time limit,
             // but on Windows try to send the smallest files you can.
             if ($boost = @$options['upload_boot']) {
